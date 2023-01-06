@@ -1,9 +1,12 @@
-import { FC } from 'react'
 import styled from '@emotion/styled'
-import { TrottoLogo } from '../icons'
-import { UserMenu } from './UserMenu'
+import { FC } from 'react'
 import useSWR from 'swr'
-import { fetcher } from '../utils/fetcher'
+
+import { TrottoLogo } from 'app/icons'
+import { User } from 'app/types'
+import { fetcher } from 'app/utils/fetcher'
+
+import { UserMenu } from './UserMenu'
 
 const StyledDiv = styled.div`
   display: flex;
@@ -15,24 +18,22 @@ const StyledDiv = styled.div`
 
   font-weight: 500;
   font-size: 24px;
+`
 
-  .left {
-    display: flex;
+const LeftLink = styled.a`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`
 
-    .logo {
-      margin-right: 8px;
-    }
-  }
+const RightContainer = styled.div`
+  display: flex;
+  align-items: center;
+  font-weight: 400;
+  font-size: 16px;
 
-  .right {
-    display: flex;
-    align-items: center;
-    font-weight: 400;
-    font-size: 16px;
-
-    .item {
-      margin: 0 12px;
-    }
+  .item {
+    margin: 0 12px;
   }
 `
 
@@ -41,17 +42,21 @@ interface AdminLink {
   url: string
 }
 
-export const NavBar: FC = () => {
+interface Props {
+  user?: User
+}
+
+export const NavBar: FC<Props> = ({ user }) => {
   const { data: adminLinks } = useSWR(`/_admin_links`, fetcher<AdminLink[]>)
   return (
     <StyledDiv>
-      <a className='left' href='/'>
-        <div className='logo'>
+      <LeftLink href='/'>
+        <div>
           <TrottoLogo />
         </div>
         <div>Trotto</div>
-      </a>
-      <div className='right'>
+      </LeftLink>
+      <RightContainer>
         <a className='item' href='/documentation'>
           Documentation
         </a>
@@ -60,10 +65,8 @@ export const NavBar: FC = () => {
             {text}
           </a>
         ))}
-        <div className='item'>
-          <UserMenu />
-        </div>
-      </div>
+        <div className='item'>{user && <UserMenu user={user} />}</div>
+      </RightContainer>
     </StyledDiv>
   )
 }

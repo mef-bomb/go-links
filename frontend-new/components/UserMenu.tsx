@@ -1,29 +1,15 @@
-import { FC } from 'react'
-import styled from '@emotion/styled'
-import { useState, MouseEvent } from 'react'
-import Box from '@mui/material/Box'
-import Avatar from '@mui/material/Avatar'
-import Menu from '@mui/material/Menu'
-import MenuItem from '@mui/material/MenuItem'
-import IconButton from '@mui/material/IconButton'
-import useSWR from 'swr'
-import { fetcher } from '../utils/fetcher'
 import PersonIcon from '@mui/icons-material/Person'
-import { Vector } from '../icons'
-import { User } from '../types'
+import { Avatar, Box, IconButton, Menu, MenuItem } from '@mui/material'
+import { MouseEvent, useState, FC } from 'react'
 
-const StyledDiv = styled.div`
-  .vector {
-    padding-left: 8px;
-    cursor: pointer;
-  }
+import { Vector } from 'app/icons'
+import { User } from 'app/types'
 
-  a {
-  }
-`
+interface Props {
+  user: User
+}
 
-export const UserMenu: FC = () => {
-  const { data: user } = useSWR(`/_/api/users/me`, fetcher<User>)
+export const UserMenu: FC<Props> = ({ user }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const open = Boolean(anchorEl)
   const handleClick = (event: MouseEvent<HTMLElement>) => {
@@ -34,7 +20,7 @@ export const UserMenu: FC = () => {
   }
 
   return (
-    <StyledDiv>
+    <>
       <Box
         sx={{ display: 'flex', alignItems: 'center', textAlign: 'center', cursor: 'pointer' }}
         onClick={handleClick}
@@ -42,6 +28,7 @@ export const UserMenu: FC = () => {
         <IconButton
           sx={{
             padding: 0,
+            margin: 0,
           }}
           size='small'
           aria-controls={open ? 'account-menu' : undefined}
@@ -52,9 +39,9 @@ export const UserMenu: FC = () => {
             <PersonIcon />
           </Avatar>
         </IconButton>
-        <div className='vector'>
+        <Box sx={{ pl: '8px', cursor: 'pointer' }}>
           <Vector />
-        </div>
+        </Box>
       </Box>
       <Menu
         anchorEl={anchorEl}
@@ -104,6 +91,6 @@ export const UserMenu: FC = () => {
           </a>
         </MenuItem>
       </Menu>
-    </StyledDiv>
+    </>
   )
 }

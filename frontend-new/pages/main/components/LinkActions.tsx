@@ -1,19 +1,15 @@
-import { useState, MouseEvent, FC, useCallback } from 'react'
-import Button from '@mui/material/Button'
-import Menu from '@mui/material/Menu'
-import MenuItem from '@mui/material/MenuItem'
-import styled from '@emotion/styled'
+import { Box, IconButton, Menu, MenuItem, Tooltip } from '@mui/material'
+import { FC, MouseEvent, useCallback, useState } from 'react'
 
-const StyledDiv = styled.div`
-  display: inline-flex;
-`
+import { ThreeDots } from 'app/icons'
 
 interface Props {
   onTransfer: () => void
   onDelete: () => void
+  disabled: boolean
 }
 
-export const LinkActions: FC<Props> = ({ onDelete, onTransfer }) => {
+export const LinkActions: FC<Props> = ({ onDelete, onTransfer, disabled }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const open = Boolean(anchorEl)
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
@@ -34,16 +30,26 @@ export const LinkActions: FC<Props> = ({ onDelete, onTransfer }) => {
   }, [onTransfer, handleClose])
 
   return (
-    <StyledDiv>
-      <Button
-        id='basic-button'
-        aria-controls={open ? 'basic-menu' : undefined}
-        aria-haspopup='true'
-        aria-expanded={open ? 'true' : undefined}
-        onClick={handleClick}
-      >
-        ...
-      </Button>
+    <Box sx={{ display: 'inline-flex' }}>
+      <Tooltip title={disabled && 'You don’t have permission to modify this go link'}>
+        <span>
+          <IconButton
+            id='basic-button'
+            aria-controls={open ? 'basic-menu' : undefined}
+            aria-haspopup='true'
+            aria-expanded={open ? 'true' : undefined}
+            onClick={handleClick}
+            disabled={disabled}
+            sx={{
+              '&:disabled': {
+                opacity: 0.1,
+              },
+            }}
+          >
+            <ThreeDots />
+          </IconButton>
+        </span>
+      </Tooltip>
       <Menu
         id='basic-menu'
         anchorEl={anchorEl}
@@ -56,6 +62,6 @@ export const LinkActions: FC<Props> = ({ onDelete, onTransfer }) => {
         <MenuItem onClick={handleTransfer}>Transfer</MenuItem>
         <MenuItem onClick={handleDelete}>Delete</MenuItem>
       </Menu>
-    </StyledDiv>
+    </Box>
   )
 }

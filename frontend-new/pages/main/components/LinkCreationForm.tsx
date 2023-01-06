@@ -1,20 +1,36 @@
-import { useState, useCallback, ChangeEvent, FormEvent } from 'react'
-import TextField from '@mui/material/TextField'
-import Button from '@mui/material/Button'
-import { LinkCreate } from '../../../types'
-import InputAdornment from '@mui/material/InputAdornment'
 import styled from '@emotion/styled'
+import EastRoundedIcon from '@mui/icons-material/EastRounded'
+import { Button, TextField } from '@mui/material'
+import { useRouter } from 'next/router'
+import { ChangeEvent, FormEvent, useCallback, useMemo, useState } from 'react'
+import { useEffect, useRef } from 'react'
+
+import { LinkCreate } from 'app/types'
 
 const StyledForm = styled.form`
+  display: grid;
+  grid-template-columns: 5fr 8fr;
+  gap: 8px;
+`
+
+const Group = styled.div`
   display: flex;
+  flex-direction: row;
+  background-color: #f4f3ff;
+  border-radius: 32px;
+`
 
-  .input {
-    flex-grow: 1;
-  }
-
-  .button {
-    margin: 10px;
-  }
+const Cicle = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 64px;
+  height: 64px;
+  background-color: #646ae7;
+  border-radius: 32px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
 `
 
 interface Props {
@@ -22,11 +38,17 @@ interface Props {
 }
 
 export const LinkCreationForm = ({ onCreate }: Props) => {
+  const {
+    query: { sp },
+  } = useRouter()
   const [formState, setFormState] = useState<LinkCreate>({
     shortpath: '',
     destination: '',
     namespace: 'go',
   })
+
+  const shortInpuRef = useRef<HTMLHeadingElement>(null)
+  const destInpuRef = useRef<HTMLHeadingElement>(null)
 
   const handleChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) =>
@@ -42,35 +64,74 @@ export const LinkCreationForm = ({ onCreate }: Props) => {
     [formState],
   )
 
+  const isDisabled = useMemo(
+    () => !formState.shortpath.length || !formState.destination.length,
+    [formState],
+  )
+
+  useEffect(() => {
+    if (typeof sp !== 'string') {
+      shortInpuRef?.current?.focus()
+      return
+    }
+
+    destInpuRef?.current?.focus()
+    setFormState((state) => ({ ...state, shortpath: sp }))
+  }, [sp, destInpuRef, shortInpuRef])
+
   return (
     <StyledForm onSubmit={handleSubmit}>
-      <TextField
-        id='shortpath'
-        className='input'
-        label='Keyword'
-        variant='standard'
-        value={formState.shortpath}
-        onChange={handleChange}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position='start' sx={{ marginRight: 0 }}>
-              {formState.namespace}/
-            </InputAdornment>
-          ),
-        }}
-      />
-      <b> &#8594; </b>
-      <TextField
-        id='destination'
-        className='input'
-        label='Paste the link to a resource here'
-        variant='standard'
-        value={formState.destination}
-        onChange={handleChange}
-      />
-      <Button className='button' variant='contained' type='submit'>
-        Create
-      </Button>
+      <Group>
+        <Cicle>{formState.namespace}/</Cicle>
+        <TextField
+          id='shortpath'
+          placeholder='Keyword'
+          value={formState.shortpath}
+          onChange={handleChange}
+          inputRef={shortInpuRef}
+          sx={{
+            flexGrow: 1,
+            backgroundColor: '#f4f3ff',
+            '& input, & input::placeholder': {
+              color: '#343AAA',
+              opacity: 1,
+            },
+          }}
+        />
+      </Group>
+
+      <Group className='group'>
+        <Cicle>
+          <EastRoundedIcon />
+        </Cicle>
+        <TextField
+          id='destination'
+          placeholder='Paste the link to a resource here'
+          value={formState.destination}
+          onChange={handleChange}
+          inputRef={destInpuRef}
+          sx={{
+            flexGrow: 1,
+            backgroundColor: '#f4f3ff',
+            '& input, & input::placeholder': {
+              color: '#343AAA',
+              opacity: 1,
+            },
+          }}
+        />
+        <Button
+          variant='contained'
+          type='submit'
+          disabled={isDisabled}
+          sx={{
+            height: '64px',
+            fontWeight: '700',
+            px: '32px',
+          }}
+        >
+          Create
+        </Button>
+      </Group>
     </StyledForm>
   )
 }

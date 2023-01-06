@@ -1,38 +1,61 @@
-import { useState, useCallback, ChangeEvent, FormEvent } from 'react'
-import { Link } from '../../../types'
-import TextField from '@mui/material/TextField'
-import Button from '@mui/material/Button'
-import { LinkActions } from './LinkActions'
 import styled from '@emotion/styled'
-import { LinkUpdate } from '../../../types'
-import { TransferModal } from '../modals/TransferModal'
-import { DeleteModal } from '../modals/DeleteModal'
+import { Box, Button, IconButton, TextField, Tooltip } from '@mui/material'
+import { BoxProps } from '@mui/system'
+import { ChangeEvent, FC, FormEvent, PropsWithChildren, useCallback, useState } from 'react'
 import { useSWRConfig } from 'swr'
-import { fetcher } from '../../../utils/fetcher'
 
-const StyledDiv = styled.div`
-  border: 1px solid;
-  padding: 10px;
-  background-color: #d9d9d9;
+import { Copy, Edit } from 'app/icons'
+import { DeleteModal } from 'app/pages/main/modals/DeleteModal'
+import { TransferModal } from 'app/pages/main/modals/TransferModal'
+import { Link, LinkUpdate } from 'app/types'
+import { fetcher } from 'app/utils/fetcher'
 
-  .button {
-    margin: 10px;
-  }
+import { LinkActions } from './LinkActions'
 
-  .row {
-    display: flex;
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border-bottom: 1px solid #f0f0f0;
+  padding: 24px 30px;
+  background-color: #f6f8fa;
+`
 
-    .grow {
-      flex-grow: 1;
-    }
-  }
+const LabelRow = styled.div`
+  display: grid;
+  grid-template-columns: max-content auto 1fr max-content max-content auto;
+  align-items: center;
+`
+
+const Form = styled.form`
+  display: flex;
+  align-items: center;
 `
 
 interface Props {
   link: Link
+  canEdit?: boolean
 }
 
-export const LinkItem = ({ link }: Props) => {
+const InfoBox: FC<PropsWithChildren & { sx?: BoxProps['sx'] }> = ({ children, sx }) => (
+  <Box
+    sx={{
+      backgroundColor: '#fff',
+      borderRadius: '32px',
+      display: 'flex',
+      alignItems: 'center',
+      px: '16px',
+      mr: '24px',
+      height: '32px',
+      cursor: 'default',
+      ...sx,
+    }}
+  >
+    {children}
+  </Box>
+)
+
+export const LinkItem: FC<Props> = ({ link, canEdit = false }) => {
   const { mutate } = useSWRConfig()
   const { id, shortpath, destination_url, owner, namespace, visits_count } = link
   const [destination, setDestination] = useState(destination_url)
@@ -85,42 +108,91 @@ export const LinkItem = ({ link }: Props) => {
   )
 
   return (
-    <StyledDiv>
-      <div className='row'>
-        <TextField
-          id='shorpath'
-          className='grow'
-          label='Keyword'
-          variant='standard'
-          value={fullShortPath}
-          disabled
-        />
-        <Button className='button' variant='contained' onClick={handleCopy}>
-          Copy
-        </Button>
-        <TextField id='owner' label='Owner' variant='standard' value={owner} disabled />
-        <TextField id='visits' label='Visits' variant='standard' value={visits_count} disabled />
-        <LinkActions onTransfer={openTrasferModal} onDelete={openDeleteModal} />
-      </div>
-      <form className='row' onSubmit={handleSave}>
-        <TextField
-          id='destination'
-          className='grow'
-          label='Keyword'
-          variant='standard'
-          value={destination}
-          onChange={handleDestinationChange}
-          disabled={!editable}
-        />
-        {editable && (
-          <Button className='button' variant='contained' type='submit'>
-            Save
-          </Button>
-        )}
-        <Button className='button' variant='contained' onClick={handleEdit}>
-          Edit
-        </Button>
-      </form>
+    <>
+      <Container>
+        <LabelRow>
+          <InfoBox
+            sx={{
+              fontSize: '16px',
+              fontWeight: '700',
+              mr: '16px',
+            }}
+          >
+            {fullShortPath}
+          </InfoBox>
+          <IconButton
+            onClick={handleCopy}
+            sx={{
+              opacity: 0.25,
+              '&:focus': {
+                opacity: 1,
+              },
+            }}
+          >
+            <Copy />
+          </IconButton>
+          <div />
+          <InfoBox>{owner}</InfoBox>
+          <InfoBox>{`${visits_count} visits`}</InfoBox>
+          <LinkActions
+            disabled={!canEdit}
+            onTransfer={openTrasferModal}
+            onDelete={openDeleteModal}
+          />
+        </LabelRow>
+        <Form onSubmit={handleSave}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              borderRadius: '32px',
+              background: '#fff',
+              mr: '24px',
+              flexGrow: 1,
+            }}
+          >
+            <TextField
+              id='destination'
+              placeholder='Keyword'
+              value={destination}
+              onChange={handleDestinationChange}
+              disabled={!editable}
+              sx={{
+                height: '32px',
+                flexGrow: 1,
+              }}
+            />
+            {editable && (
+              <Button
+                className='button'
+                variant='contained'
+                type='submit'
+                sx={{
+                  backgroundColor: '#000',
+                }}
+              >
+                Save
+              </Button>
+            )}
+          </Box>
+          <Tooltip title={!canEdit && 'You don’t have permission to modify this go link'}>
+            <span>
+              <IconButton
+                onClick={handleEdit}
+                sx={{
+                  opacity: editable ? 1 : 0.25,
+                  '&:disabled': {
+                    opacity: 0.1,
+                  },
+                }}
+                disabled={!canEdit}
+              >
+                <Edit />
+              </IconButton>
+            </span>
+          </Tooltip>
+        </Form>
+      </Container>
       {transferModal && (
         <TransferModal open={transferModal} onClose={closeTrasferModal} link={link} />
       )}
@@ -130,6 +202,6 @@ export const LinkItem = ({ link }: Props) => {
         onDelete={handleDelete}
         link={link}
       />
-    </StyledDiv>
+    </>
   )
 }
